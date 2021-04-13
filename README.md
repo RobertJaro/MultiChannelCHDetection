@@ -1,6 +1,6 @@
-# Multi-channel coronal hole detection with convolutional neural networks | **CHRONNOS**
-
+![](images/title.jpg)
 ---
+# Multi-channel coronal hole detection with convolutional neural networks
 
 The precise detection of the coronal hole boundary is of primary interest for a better understanding of the physics of coronal holes, their role in the solar cycle evolution and space weather forecasting.
 We develop a reliable, fully automatic method for the detection of coronal holes, that provides consistent full-disk segmentation maps over the full solar cycle and can perform in real-time.
@@ -11,7 +11,6 @@ From the direct comparison over short time scales of days to weeks, we find that
 The evaluation of SCAN shows that the neural network provides the best performance with the combined channel information, but that coronal hole segmentation maps can be also obtained solely from line-of-sight magnetograms.
 The proposed neural network provides a reliable data set for the study of solar cycle dependencies and coronal hole parameters. Due to the fast and robust coronal hole segmentation, the algorithm is also highly suitable for real-time space weather applications.
 
-![](images/logo.jpg)
 
 ---
 
