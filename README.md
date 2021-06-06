@@ -31,6 +31,7 @@ alone.
 _Conclusions._ The proposed neural network provides a reliable data set for the study of solar-cycle dependencies and coronal-hole
 parameters. Given the fast and robust coronal hole segmentation, the algorithm is also highly suitable for real-time space weather
 applications.
+
 ---
 
 ## Code
