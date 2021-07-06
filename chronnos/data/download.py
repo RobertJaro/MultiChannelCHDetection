@@ -6,6 +6,7 @@ import threading
 import traceback
 from datetime import timedelta
 from multiprocessing.queues import JoinableQueue
+from pathlib import Path
 from urllib.request import urlopen
 
 import drms
@@ -50,12 +51,12 @@ class DataSetFetcher:
         while True:
             header, segment, t = self.download_queue.get()
             logging.info('Start download: %s / %s' % (t.isoformat(' '), header['WAVELNTH']))
+            dir = os.path.join(self.ds_path, '%d' % header['WAVELNTH'])
+            map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
+            if os.path.exists(map_path):
+                self.download_queue.task_done()
+                continue
             try:
-                dir = os.path.join(self.ds_path, '%d' % header['WAVELNTH'])
-                map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
-                if os.path.exists(map_path):
-                    self.download_queue.task_done()
-                    continue
                 # load map
                 url = 'http://jsoc.stanford.edu' + segment
                 url_request = urlopen(url)
@@ -65,20 +66,20 @@ class DataSetFetcher:
                 data = hdul[1].data
                 header = {k: v for k, v in header.items() if not pd.isna(v)}
                 header['DATE_OBS'] = header['DATE__OBS']
-                s_map = Map(data, header)
-                os.makedirs(dir, exist_ok=True)
-                map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
-                if os.path.exists(map_path):
-                    os.remove(map_path)
-                s_map.save(map_path)
-                self.download_queue.task_done()
-                logging.info('Finished download: %s / %s' % (t.isoformat(' '), header['WAVELNTH']))
             except Exception as ex:
                 logging.info('Download failed: %s (requeue)' % header['DATE__OBS'])
                 logging.info(ex)
                 self.download_queue.put((header, segment, t))
                 self.download_queue.task_done()
                 continue
+            s_map = Map(data, header)
+            os.makedirs(dir, exist_ok=True)
+            map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
+            if os.path.exists(map_path):
+                os.remove(map_path)
+            s_map.save(map_path)
+            self.download_queue.task_done()
+            logging.info('Finished download: %s / %s' % (t.isoformat(' '), header['WAVELNTH']))
 
     def fetchDates(self, dates):
         """Download the closest observations to the specified dates.
@@ -86,10 +87,10 @@ class DataSetFetcher:
         :param dates: list of datetime dates to download
         """
         for date in dates:
+            if all([os.path.exists(os.path.join(self.ds_path, dir, date.isoformat('T') + '.fits'))
+                    for dir in self.dirs]):
+                continue
             try:
-                if all([os.path.exists(os.path.join(self.ds_path, dir, date.isoformat('T') + '.fits'))
-                        for dir in self.dirs]):
-                    continue
                 self.fetchData(date)
             except Exception as ex:
                 logging.error(traceback.format_exc())
@@ -184,8 +185,8 @@ class DataSetFetcher:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download AIA and HMI files for CHRONNNOS image segmenation.')
-    parser.add_argument('path', type=str, help='the path to the storage directory',
-                        default=os.path.join(os.getenv('HOME'), 'chronnos'))
+    parser.add_argument('--path', type=str, help='the path to the storage directory',
+                        default=os.path.join(Path.home(), 'chronnos'))
     parser.add_argument('--dates', nargs='*', type=lambda s: parse(s), help='dates in dateutil parseable format')
     parser.add_argument('--hmi_series', type=str, help='jsoc hmi series (hmi.M_720s or hmi.M_45s)',
                         default='hmi.M_720s')
