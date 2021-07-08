@@ -31,6 +31,7 @@ class DataSetFetcher:
         self.ds_path = ds_path
         self.dirs = ['94', '131', '171', '193', '211', '304', '335', '6173']
         os.makedirs(ds_path, exist_ok=True)
+        [os.makedirs(os.path.join(ds_path, dir), exist_ok=True) for dir in self.dirs]
         self.hmi_series = hmi_series
 
         logging.basicConfig(
@@ -52,7 +53,7 @@ class DataSetFetcher:
             header, segment, t = self.download_queue.get()
             logging.info('Start download: %s / %s' % (t.isoformat(' '), header['WAVELNTH']))
             dir = os.path.join(self.ds_path, '%d' % header['WAVELNTH'])
-            map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
+            map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds').replace(':', ''))
             if os.path.exists(map_path):
                 self.download_queue.task_done()
                 continue
@@ -73,8 +74,6 @@ class DataSetFetcher:
                 self.download_queue.task_done()
                 continue
             s_map = Map(data, header)
-            os.makedirs(dir, exist_ok=True)
-            map_path = os.path.join(dir, '%s.fits' % t.isoformat('T', timespec='seconds'))
             if os.path.exists(map_path):
                 os.remove(map_path)
             s_map.save(map_path)
@@ -87,7 +86,8 @@ class DataSetFetcher:
         :param dates: list of datetime dates to download
         """
         for date in dates:
-            if all([os.path.exists(os.path.join(self.ds_path, dir, date.isoformat('T') + '.fits'))
+            if all([os.path.exists(os.path.join(self.ds_path, dir,
+                                                date.isoformat('T', timespec='seconds').replace(':', '') + '.fits'))
                     for dir in self.dirs]):
                 continue
             try:
