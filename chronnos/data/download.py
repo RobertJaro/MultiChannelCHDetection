@@ -16,6 +16,8 @@ from astropy.io.fits import HDUList
 from dateutil.parser import parse
 from sunpy.map import Map
 
+from chronnos.data.converter import prepMap
+
 
 class DataSetFetcher:
     """Download tool for JSOC.
@@ -23,12 +25,14 @@ class DataSetFetcher:
     Attributes:
         ds_path: the path to the download directory
         num_worker_threads: number of parallel threads being used
-        hmi_series: the JSOOC series used for HMI magnetograms
+        hmi_series: the JSOC series used for HMI magnetograms
+        resolution: the resolution for pre-processing the maps or None for no pre-processing (512 for standard CHRONNOS)
     """
 
-    def __init__(self, ds_path, num_worker_threads=8, hmi_series='hmi.M_720s'):
+    def __init__(self, ds_path, num_worker_threads=8, hmi_series='hmi.M_720s', resolution: int = None):
         """Init the DataSetFetcher."""
         self.ds_path = ds_path
+        self.resolution = resolution
         self.dirs = ['94', '131', '171', '193', '211', '304', '335', '6173']
         os.makedirs(ds_path, exist_ok=True)
         [os.makedirs(os.path.join(ds_path, dir), exist_ok=True) for dir in self.dirs]
@@ -74,6 +78,8 @@ class DataSetFetcher:
                 self.download_queue.task_done()
                 continue
             s_map = Map(data, header)
+            if self.resolution:
+                s_map = prepMap(s_map, self.resolution)
             if os.path.exists(map_path):
                 os.remove(map_path)
             s_map.save(map_path)
@@ -192,8 +198,11 @@ if __name__ == '__main__':
                         default='hmi.M_720s')
     parser.add_argument('--n_workers', type=int, help='number of parallel threads used for download',
                         default=8)
+    parser.add_argument('--resolution', type=int, help='the resolution for pre-processing the maps or None for no pre-processing (512 for standard CHRONNOS)',
+                        default=None)
 
     args = parser.parse_args()
 
-    fetcher = DataSetFetcher(ds_path=args.path, hmi_series=args.hmi_series, num_worker_threads=args.n_workers)
+    fetcher = DataSetFetcher(ds_path=args.path, hmi_series=args.hmi_series, num_worker_threads=args.n_workers,
+                             resolution=args.resolution)
     fetcher.fetchDates(args.dates)
