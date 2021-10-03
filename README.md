@@ -48,14 +48,20 @@ Open access (arXiv): https://arxiv.org/abs/2104.14313
 
 
 ```
-@article{Jarolim2021chronnos,
-    title={Multi-channel coronal hole detection with convolutional neural networks},
-    url={http://dx.doi.org/10.1051/0004-6361/202140640}, 
-    DOI={10.1051/0004-6361/202140640}, 
-    journal={Astronomy & Astrophysics}, 
-    author={Jarolim, R. and Veronig, A. M. and Hofmeister, S. and Heinemann, S. G. and Temmer, M. and Podladchikova, T. and Dissauer, K.}, 
-    year={2021}, 
-    month={May}
+@ARTICLE{Jarolim2021chronnos,
+       author = {{Jarolim}, R. and {Veronig}, A.~M. and {Hofmeister}, S. and {Heinemann}, S.~G. and {Temmer}, M. and {Podladchikova}, T. and {Dissauer}, K.},
+        title = "{Multi-channel coronal hole detection with convolutional neural networks}",
+      journal = {Astronomy & Astrophysics},
+         year = 2021,
+        month = aug,
+       volume = {652},
+          eid = {A13},
+        pages = {A13},
+          doi = {10.1051/0004-6361/202140640},
+archivePrefix = {arXiv},
+       eprint = {2104.14313},
+ primaryClass = {astro-ph.SR},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2021A&A...652A..13J},
 }
 ```
 
