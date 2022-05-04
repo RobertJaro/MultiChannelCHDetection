@@ -31,6 +31,7 @@ alone.
 _Conclusions._ The proposed neural network provides a reliable data set for the study of solar-cycle dependencies and coronal-hole
 parameters. Given the fast and robust coronal hole segmentation, the algorithm is also highly suitable for real-time space weather
 applications.
+
 ---
 
 ## Code
@@ -44,6 +45,10 @@ Journal Version (A&A): https://doi.org/10.1051/0004-6361/202140640
 
 Open access (arXiv): https://arxiv.org/abs/2104.14313
 
+News article: https://www.skoltech.ru/en/2021/06/holes-in-the-solar-atmosphere-artificial-intelligence-spots-coronal-holes-to-automate-space-weather-prediction/
+
+News article (german): https://news.uni-graz.at/de/detail/article/dunkle-seiten/
+
 ## Citation
 
 
@@ -52,6 +57,7 @@ Open access (arXiv): https://arxiv.org/abs/2104.14313
        author = {{Jarolim}, R. and {Veronig}, A.~M. and {Hofmeister}, S. and {Heinemann}, S.~G. and {Temmer}, M. and {Podladchikova}, T. and {Dissauer}, K.},
         title = "{Multi-channel coronal hole detection with convolutional neural networks}",
       journal = {Astronomy & Astrophysics},
+     keywords = {Sun: activity, Sun: corona, solar wind, solar-terrestrial relations, Sun: evolution, methods: data analysis, Astrophysics - Solar and Stellar Astrophysics},
          year = 2021,
         month = aug,
        volume = {652},
@@ -62,6 +68,7 @@ archivePrefix = {arXiv},
        eprint = {2104.14313},
  primaryClass = {astro-ph.SR},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2021A&A...652A..13J},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
 
