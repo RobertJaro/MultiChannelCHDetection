@@ -24,7 +24,7 @@ class CHRONNOSDetector:
         assert (model_path is not None) or (model_name is not None), 'Either model_path or model_name need to be specified.'
         model_path = load_model_path(model_name) if model_path is None else model_path
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if device is None else device
-        self.model = torch.load(model_path, map_location=device)
+        self.model = torch.load(model_path, map_location=self.device)
         self.model.eval()
 
     def predict_dir(self, data_path, dirs=None, **kwargs):

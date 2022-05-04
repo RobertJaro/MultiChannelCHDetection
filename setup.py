@@ -10,5 +10,5 @@ setup(
     author='Robert Jarolim',
     author_email='',
     description='CHRONNOS',
-    install_requires=['torch>=1.8', 'sunpy>=3.0', 'tqdm', 'drms', 'astropy'],
+    install_requires=['torch>=1.8', 'sunpy>=3.0', 'tqdm', 'drms', 'astropy', 'aiapy'],
 )

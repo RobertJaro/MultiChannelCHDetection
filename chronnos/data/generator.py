@@ -26,7 +26,6 @@ class FITSDataset(Dataset):
         file_cube = self.files[index]
         x = np.array([getMapData(file, 512, correction_table=self.correction_table, calibrate=self.calibrate) for file in file_cube])
         x = x * 2 - 1  # scale to [-1, 1]
-        x = np.transpose(x, axes=[2, 0, 1])
         return np.array(x.data.tolist(), dtype=np.float32)
 
     def __len__(self):
