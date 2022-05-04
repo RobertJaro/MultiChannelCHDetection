@@ -16,7 +16,7 @@ from astropy.io.fits import HDUList
 from dateutil.parser import parse
 from sunpy.map import Map
 
-from chronnos.data.converter import prepMap
+from chronnos.data.convert import prepMap
 
 
 class DataSetFetcher:

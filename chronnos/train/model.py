@@ -1,10 +1,138 @@
+import logging
+import os
 from typing import List
 
+import numpy as np
 import torch
 from torch import nn
+from torch.nn import BCELoss
+from torch.utils.data import DataLoader
+
+from chronnos.data.convert import sdo_cmaps
+from chronnos.data.generator import CombinedCHDataset, MapDataset, MaskDataset, getDataSet
+from chronnos.train.callback import PlotCallback, ValidationCallback
 
 
-class ProModel(nn.Module):
+class Trainer:
+
+    def __init__(self, base_path, data_path, device=None, channels=None, **training_args):
+        """
+        Trainer for the CHRONNOS model
+        :param str base_path: path for the training results
+        :param str data_path: path to the converted data
+        :param device: None to use the available device
+        :param channels: Subset of channels to use for model training
+        :param training_args: arguments for the model training, requires 'n_dims', 'n_convs', 'image_channels', 'start_resolution'
+        """
+        self.base_path = base_path
+        self.ds_path = data_path
+        self.training_args = training_args
+        self.channels = channels
+
+        os.makedirs(base_path, exist_ok=True)
+
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if device is None else device
+        logging.info('Using device: %s' % self.device)
+        self.model = CHRONNOS(training_args['n_dims'], training_args['n_convs'], training_args['image_channels'], 1,
+                              dropout=0.2)
+        self.opt = torch.optim.Adam(self.model.parameters(), lr=1e-3, betas=(0., 0.99), weight_decay=1e-8)
+
+        self.criterion = BCELoss(reduction='none')
+        self.lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=self.opt, gamma=0.5)
+        self.validation_callback = ValidationCallback(path=base_path)
+
+    def train(self):
+        logging.info('====================== START TRAINING CORE ======================')
+        start_resolution = self.training_args['start_resolution']
+        self.model.to(self.device)
+        self._trainStep(start_resolution)
+        for i in range(1, len(self.training_args['n_dims'])):
+            self.lr_scheduler.step()
+            resolution = start_resolution * 2 ** i
+            logging.info('====================== START FADE IN %04d ======================' % (resolution))
+            # enter fade in mode
+            self.model.createFadeIn()
+            self.model.to(self.device)
+            self.opt.add_param_group({'params': list(self.model.down_block.parameters()) +
+                                                list(self.model.up_block.parameters()) +
+                                                list(self.model.to_mask_fade.parameters()) +
+                                                list(self.model.from_image_fade.parameters())})
+            self._trainStep(resolution)
+
+            logging.info('====================== START FIXED %04d ======================' % (resolution))
+            self.model.createFixed()
+            self._trainStep(resolution)
+        torch.save(self.model, os.path.join(self.base_path, 'final_model.pt'))
+
+    def _trainStep(self, resolution_id):
+        fade_flag = "fade" if self.model.fade is True else "non-fade"
+        batch_size = 512 // resolution_id
+        epochs = 5120 // resolution_id
+        epochs = 100 if epochs > 100 else epochs
+
+        save_model_path = os.path.join(self.base_path, "ch_%04d_%s_model.pt" % (resolution_id, fade_flag))
+        # continue training if step already complete
+        if os.path.exists(save_model_path):
+            state_dict = torch.load(save_model_path)
+            self.model.load_state_dict(state_dict['m'])
+            self.opt.load_state_dict(state_dict['o'])
+            self.validation_callback.history = state_dict['history']
+            return
+        # Data Set Generator
+        train_files_map, train_files_mask, valid_files_map, valid_files_mask = getDataSet(self.ds_path, resolution_id)
+        train_ds = CombinedCHDataset(train_files_map, train_files_mask, channel=self.channels)
+        valid_map_ds = MapDataset(valid_files_map, channel=self.channels)
+        valid_mask_ds = MaskDataset(valid_files_mask)
+
+        # compute norm
+        train_mask_ds = MaskDataset(train_files_mask)
+        masks = np.array([m for m in train_mask_ds])
+        norm = np.sum(masks) / np.sum(1 - masks)
+
+        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=8)
+
+        valid_loader_map = DataLoader(valid_map_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+        valid_loader_mask = DataLoader(valid_mask_ds, batch_size=batch_size, shuffle=False, num_workers=4)
+
+        pred_callback = PlotCallback(data=[(valid_map_ds[i], valid_mask_ds[i]) for i in
+                                           range(0, len(valid_map_ds), len(valid_map_ds) // 10)],
+                                     prefix="%04d_%s" % (resolution_id, fade_flag),
+                                     path=self.base_path,
+                                     model=self.model, cmaps=np.array(sdo_cmaps)[self.channels] if self.channels else None)
+        self.model.eval()
+        with torch.no_grad():
+            pred_callback.call(-1, .0)
+        epoch_alphas = np.linspace(0, 1, epochs, endpoint=False)
+        for epoch, epoch_alpha in enumerate(epoch_alphas):
+            alphas = np.linspace(epoch_alpha, epoch_alpha + np.diff(epoch_alphas)[0], len(train_loader))
+            alpha = epoch_alpha
+            self.model.train()
+            for (x, y), alpha in zip(train_loader, alphas):
+                x, y = x.to(self.device), y.to(self.device)
+                self.opt.zero_grad()
+                if self.model.fade:
+                    y_pred = self.model.forwardFadeIn(x, alpha)
+                else:
+                    y_pred = self.model.forward(x)
+                loss = self.criterion(y_pred, y)
+                loss = loss * y + loss * (1 - y) * norm  # weight 10:1
+                loss = torch.mean(loss)
+                loss.backward()
+                self.opt.step()
+            self.model.eval()
+            with torch.no_grad():
+                if (epoch + 1) % (epochs // 10) == 0 or epoch == 0:
+                    pred_callback.call(epoch, alpha)
+
+                iou, acc = self.validation_callback.call(self.model, valid_loader_map, valid_loader_mask, alpha)
+            logging.info(
+                'EPOCH %03d/%03d [IOU %.03f] [ACC %.03f]' % (epoch + 1, epochs, iou, acc))
+        torch.save(
+            {'m': self.model.state_dict(), 'o': self.opt.state_dict(), 'history': self.validation_callback.history},
+            save_model_path)
+
+
+class CHRONNOS(nn.Module):
 
     def __init__(self, n_dims: List, n_convs: List, image_channels, n_classes, dropout=0.2):
         super().__init__()
