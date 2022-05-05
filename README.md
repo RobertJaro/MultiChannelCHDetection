@@ -74,7 +74,7 @@ or the files can be manually specified (use the format `(channel, file)`)
 
 ```python
 files = [['chronnos_data/171/1.fits'], ['chronnos_data/193/1.fits'], ['chronnos_data/211/1.fits'], ['chronnos_data/304/1.fits']]
-ch_maps = chronnos_detector.predict(files, reproject=True)
+ch_maps = chronnos_detector.predict(files, reproject=[True or False])
 ```
 
 For more details and instructions for data download check the Colab Notebook.
@@ -102,9 +102,9 @@ The prediction script scans through a directory, detects coronal holes and saves
 - Download the prefered model: https://kanzelhohe.uni-graz.at/iti/chronnos_v1_0.pt or https://kanzelhohe.uni-graz.at/iti/chronnos_euv_v1_0.pt
 - In the command line navigate to the project and run
 ```
-python -m chronnos.predict --data_path [path to the data] --model_path [path to the model] --evaluation_path [result directory] --plot_samples [True to visualize the results (default True)]
+python -m chronnos.predict --data_path [path to the data] --model_path [path to the model] --evaluation_path [result directory] --no_reproject [disable reprojection to AIA maps] --plot_samples [set to visualize the results] –-n_workers [number of parallel pre-processing threads (default 8)]
 ```
-The resulting FITS files contain the binary predictions and are reprojected to the coordinates of the original FITS files.
+The resulting FITS files contain the binary predictions and are reprojected to the input coordinate frame (if not `--no_reproject`).
 
 ### Training CHRONNOS (python script)
 
