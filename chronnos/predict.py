@@ -12,12 +12,12 @@ from tqdm import tqdm
 from chronnos.data.convert import buildFITS
 from chronnos.data.generator import FITSDataset
 
-parser = argparse.ArgumentParser(description='Predict CHRONNOS masks from SDO fits files')
-parser.add_argument('data_path', type=str,
+parser = argparse.ArgumentParser(description='Predict CHRONNOS masks from SDO FITS files')
+parser.add_argument('--data_path', type=str,
                     help='the path to the data directory. Files need to be separated by channel.')
-parser.add_argument('model_path', type=str, help='path to the pretrained CHRONNOS model')
-parser.add_argument('eval_path', type=str, help='path to the output files')
-parser.add_argument('-plot_samples', type=bool, help='visualize results', default=True)
+parser.add_argument('--model_path', type=str, help='path to the pretrained CHRONNOS model')
+parser.add_argument('--eval_path', type=str, help='path to the output files')
+parser.add_argument('--plot_samples', type=bool, help='visualize results', default=True)
 parser.add_argument('--channels', '-channels', nargs='+', required=False, default=['94', '131', '171', '193', '304', '211', '335', '6173'],
                     help='subset of channels to load. The order must match the input channels of the model.')
 

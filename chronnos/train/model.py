@@ -16,8 +16,8 @@ from chronnos.train.callback import PlotCallback, ValidationCallback
 class Trainer:
 
     def __init__(self, base_path, data_path, device=None, channels=None, **training_args):
-        """
-        Trainer for the CHRONNOS model
+        """Trainer for the CHRONNOS model
+
         :param str base_path: path for the training results
         :param str data_path: path to the converted data
         :param device: None to use the available device

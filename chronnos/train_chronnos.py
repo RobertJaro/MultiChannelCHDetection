@@ -14,7 +14,7 @@ parser.add_argument('--converted_path', type=str,
                     help='the path to store the converted data. This path will be used for loading the training samples.')
 parser.add_argument('--convert', type=str, required=False, default='true',
                     help='perform conversion of FTIS files to training data.')
-parser.add_argument('-channels', '--channels', nargs='+', help='set to use a subset of wavelenghts.', required=False, default=None)
+parser.add_argument('--channels', '--channels', nargs='+', help='set to use a subset of wavelenghts.', required=False, default=None)
 
 args = parser.parse_args()
 

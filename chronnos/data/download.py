@@ -20,6 +20,7 @@ from chronnos.data.convert import prepMap
 
 
 class DataSetFetcher:
+    """"""
     """Download tool for JSOC.
 
     Attributes:

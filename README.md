@@ -2,7 +2,13 @@
 ---
 # Multi-channel coronal hole detection with convolutional neural networks
 
-# [Paper](#paper) --- [Code and Data](#code) --- [Citation](#citation) --- [Contact](#contact)
+[Usage](#usage) --- [Data](#data) --- [Paper](#paper) --- [Citation](#citation) --- [Contact](#contact)
+
+
+
+[For automatic coronal hole detection of arbitrary dates and series click here](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS.ipynb)
+
 
 ## Abstract
 
@@ -34,10 +40,91 @@ applications.
 
 ---
 
-## Code
+## Usage
 
-The code and data set will be made publicly available with the next CHRONNOS version, covering data from SDO, SOHO and STEREO.
-This study will also feature a first statistical evaluation of coronal holes since 1996 at high cadence.
+The easiest way for getting started is the [Google Colab notebook](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS.ipynb) 
+for automatic coronal hole detections. This provides an online environment for downloading and analyzing data.
+
+### chronnos package
+
+For using CHRONNOS in your local environment use the pip installation:
+``
+pip install chronnos
+``
+
+or the conda installation:
+``
+conda install chronnos -c conda-forge
+``
+
+The `chronnos` package provides an automatic detector that can scan through FITS data sets. The pre-trained model is automatically
+downloaded to your home directory.
+```python
+from chronnos.evaluate.detect import CHRONNOSDetector
+chronnos_detector = CHRONNOSDetector(model_name='chronnos_v1_0.pt')
+```
+
+The detector can then be used to scan directories
+```python
+ch_maps = chronnos_detector.predict_dir('<<path to your base dir>>', dirs='<<list of directories (order must match the CHRONNOS input channels)>>',
+                                        reproject=[True or False])
+```
+
+or the files can be manually specified (use the format `(channel, file)`)
+
+```python
+files = [['chronnos_data/171/1.fits'], ['chronnos_data/193/1.fits'], ['chronnos_data/211/1.fits'], ['chronnos_data/304/1.fits']]
+ch_maps = chronnos_detector.predict(files, reproject=True)
+```
+
+For more details and instructions for data download check the Colab Notebook.
+
+### Downloading data (python script)
+
+CHRONNOS provides a data fetcher for downloading data from JSOC using DRMS.
+
+- Download this project from GitHub to your local environment
+- In the command line navigate to the project and run
+
+```
+python -m chronnos.data.download --path [download_path] --dates [list of dates] –-hmi_series [either hmi.M_720s or hmi.M_45s (default 720)] –-n_workers [number of parallel threads (default 8)]
+```
+- Example:
+```
+python -m chronnos.data.download /path/to/my/directory -–dates 2021-01-03T00:00 2021-01-04T00:00
+```
+The download tool will fetch the closest observations for the given times
+
+### Detecting coronal holes (python script)
+
+The prediction script scans through a directory, detects coronal holes and saves the results as FITS files.
+
+- Download the prefered model: https://kanzelhohe.uni-graz.at/iti/chronnos_v1_0.pt or https://kanzelhohe.uni-graz.at/iti/chronnos_euv_v1_0.pt
+- In the command line navigate to the project and run
+```
+python -m chronnos.predict --data_path [path to the data] --model_path [path to the model] --evaluation_path [result directory] --plot_samples [True to visualize the results (default True)]
+```
+The resulting FITS files contain the binary predictions and are reprojected to the coordinates of the original FITS files.
+
+### Training CHRONNOS (python script)
+
+CHRONNOS can be also trained for your own data set.
+
+- Prepare your binary maps for training (FITS format) and download the SDO data
+- In the command line navigate to the project and run
+```
+python -m chronnos.train_chronnos --base_path [result directory] --data_path [path to the FITS data] --converted_path [directory for the converted data] --convert [False if you want to skip converting the FITS data set (default True)] --channels [subset of wavelengths used for training (default all: 94, 131, 171, 193, 211, 304, 335, 6173)]
+```
+
+You can also skip the automatic conversion of FITS files and use your own data pre-processing. For this provide the 
+maps and mask as `.npy` files and separate them into two directories (`map`, `mask`) in the `[converted_path]` directory.
+
+(Note that this version expects all EUV channels and the LOS magnetogram for data pre-processing.)
+
+## Data
+
+The preparations for the CHRONNOS archive are ongoing. The archive will cover coronal hole detections at 6 hour cadence 
+for the SDO era, coronal hole detections for SOHO, and synchronic Maps from STEREO and SDO (full-Sun coronal hole maps).
 
 ## Paper
 

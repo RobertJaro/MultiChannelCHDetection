@@ -3,11 +3,10 @@ import os
 import random
 
 import numpy as np
-from aiapy.calibrate.util import get_correction_table
 from dateutil.parser import parse
 from torch.utils.data import Dataset
 
-from chronnos.data.convert import getMapData
+from chronnos.data.convert import getMapData, get_local_correction_table
 
 
 class FITSDataset(Dataset):
@@ -18,7 +17,7 @@ class FITSDataset(Dataset):
         :param calibrate: adjust device degradation and exposure time. For pre-processed files set calibration=False.
         """
         self.files = files
-        self.correction_table = get_correction_table()
+        self.correction_table = get_local_correction_table() if calibrate else None
         self.calibrate = calibrate
         super().__init__()
 

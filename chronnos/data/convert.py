@@ -118,8 +118,8 @@ def prepMap(s_map: Map, resolution: int, padding_factor: float = 0.1):
 
 
 def convertMaps(grouped_files, converted_path, resolutions, n_workers=8, replace=False):
-    """
-    Convert FITS files for model training.
+    """Convert FITS files for model training.
+
     :param grouped_files: list of FITS files in the format (channel, file)
     :param converted_path: path where the converted data is stored
     :param resolutions: set of resolutions used for training
@@ -130,13 +130,13 @@ def convertMaps(grouped_files, converted_path, resolutions, n_workers=8, replace
     [os.makedirs(os.path.join(converted_path, '%d' % res), exist_ok=True) for res in resolutions]
     correction_table = get_local_correction_table()
 
-    converter = _MapConverted(converted_path, resolutions, correction_table, replace)
+    converter = _MapConverter(converted_path, resolutions, correction_table, replace)
     # async conversion
     with Pool(n_workers) as p:
         [None for _ in tqdm(p.imap_unordered(converter.convert, np.array(grouped_files).transpose()), total=len(grouped_files[0]))]
     # _convert(np.array(grouped_files).transpose()[0])
 
-class _MapConverted:
+class _MapConverter:
 
     def __init__(self, converted_path, resolutions, correction_table, replace):
         self.converted_path = converted_path
@@ -162,8 +162,8 @@ class _MapConverted:
             np.save(path, map_data_reduced.astype(np.float32))
 
 def convertMasks(files, converted_path, resolutions, n_workers=8, replace=False):
-    """
-    Convert label masks for model training.
+    """Convert label masks for model training.
+
     :param files: list of FITS files
     :param converted_path: path where the converted data is stored
     :param resolutions: set of resolutions used for training
@@ -204,8 +204,8 @@ class _MaskConverter:
             np.save(path, map_data_reduced.astype(np.float32))
 
 def get_intersecting_files(path, dirs, months=None, years=None, extensions=None):
-    """
-    Find intersecting files in directory.
+    """Find intersecting files in directory.
+
     :param path: base directory
     :param dirs: directories to scan
     :param months: filter for months
@@ -226,9 +226,11 @@ def get_intersecting_files(path, dirs, months=None, years=None, extensions=None)
     return [[os.path.join(path, str(dir), b + ext) for b in basenames] for dir, ext in zip(dirs, extensions)]
 
 def get_local_correction_table():
-    """
-    Load AIA correction table from home directory. Downloads a new table if no file exists.
-    :return:
+    """Load AIA correction table from home directory.
+
+    Downloads a new table if no file exists.
+
+    :return: the correction table
     """
     path = os.path.join(Path.home(), 'aiapy', 'correction_table.dat')
     if os.path.exists(path):
