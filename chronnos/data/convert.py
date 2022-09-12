@@ -46,15 +46,17 @@ def getMapData(file, resolution, correction_table=None, remove_off_disk=False, c
     s_map = Map(file)
     s_map = prepMap(s_map, resolution)
     #
-    if not isinstance(s_map, HMIMap) and calibrate:
-        s_map = correct_degradation(s_map, correction_table=correction_table)
-        data = np.nan_to_num(s_map.data)
-        data = data / s_map.meta["exptime"]
-    else:  # truncate boundary for HMI images
+    if isinstance(s_map, HMIMap): # truncate boundary for HMI images
         data = np.nan_to_num(s_map.data)
         hpc_coords = all_coordinates_from_map(s_map)
         r = np.sqrt(hpc_coords.Tx ** 2 + hpc_coords.Ty ** 2) / s_map.rsun_obs
         data[r > 1] = 0
+    elif calibrate:
+        s_map = correct_degradation(s_map, correction_table=correction_table)
+        data = np.nan_to_num(s_map.data)
+        data = data / s_map.meta["exptime"]
+    else:
+        data = np.nan_to_num(s_map.data)
     if remove_off_disk:
         hpc_coords = all_coordinates_from_map(s_map)
         r = np.sqrt(hpc_coords.Tx ** 2 + hpc_coords.Ty ** 2) / s_map.rsun_obs
