@@ -1,8 +1,8 @@
 ![](images/title.jpg)
 ---
-# Multi-channel coronal hole detection with convolutional neural networks
+# CHRONNOS - Multi-channel coronal hole detection with convolutional neural networks
 
-[Usage](#usage) --- [Data](#data) --- [Paper](#paper) --- [Citation](#citation) --- [Contact](#contact)
+## [Usage](#usage) --- [Data](#data) --- [Paper](#paper) --- [Citation](#citation) --- [Contact](#contact)
 
 
 
