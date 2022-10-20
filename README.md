@@ -9,6 +9,8 @@
 [For automatic coronal hole detection of arbitrary dates and series click here](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS.ipynb)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS.ipynb)
 
+[Quick start coronal hole series detection](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS_inference.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RobertJaro/MultiChannelCHDetection/blob/master/examples/CHRONNOS_inference.ipynb)
 
 ## Abstract
 
